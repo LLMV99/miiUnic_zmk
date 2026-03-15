@@ -8,35 +8,62 @@
         , <&pro_micro 18 GPIO_ACTIVE_HIGH>
         , <&pro_micro 15 GPIO_ACTIVE_HIGH>
         , <&pro_micro 14 GPIO_ACTIVE_HIGH>
+        , <&pro_micro 16 GPIO_ACTIVE_HIGH>
         ;
 };
 
-&encoder_left {
+// == Input devices ==
+// Input devices on peripheral parts
+// Enabling input listeners and input-split to receive input events from peripherals
+&input_split_right0 { status = "okay"; };
+&input_listener_right0 { status = "okay"; };
+
+&encoder_left0 {
+    a-gpios = <&pro_micro 9 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+    b-gpios = <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
     status = "okay";
 };
 
+// Assigning dummy pins to other part's encoders
+// just to satisfy the devicetree requirements.
+// No code will be compiled for these disabled encoders.
+&encoder_right0 {
+    a-gpios = <&pro_micro 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+    b-gpios = <&pro_micro 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+};
+
 &pinctrl {
+    /* configuration for spi0 device, default state */
     spi0_default: spi0_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 20)>,  // P3 (D3)  SCL
-                    <NRF_PSEL(SPIM_MOSI, 1, 17)>, // P2 (D2)  SDA
-                    <NRF_PSEL(SPIM_MISO, 0, 25)>;
+            psels = <NRF_PSEL(SPIM_SCK, 0, 20)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 17)>;
         };
     };
+    /* configuration for spi0 device, sleep state */
     spi0_sleep: spi0_sleep {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 20)>,
-                    <NRF_PSEL(SPIM_MOSI, 1, 17)>,
-                    <NRF_PSEL(SPIM_MISO, 0, 25)>;
+            psels = <NRF_PSEL(SPIM_SCK, 0, 20)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 17)>;
             low-power-enable;
         };
     };
 };
-
-nice_view_spi: &spi0 {
-    compatible = "nordic,nrf-spim";
-    pinctrl-0 = <&spi0_default>;
-    pinctrl-1 = <&spi0_sleep>;
-    pinctrl-names = "default", "sleep";
-    cs-gpios = <&pro_micro 4 GPIO_ACTIVE_HIGH>; // P4 (CS)
+&spi0 {
+  compatible = "nordic,nrf-spim";
+  status = "okay";
+  pinctrl-0 = <&spi0_default>;
+  pinctrl-1 = <&spi0_sleep>;
+  pinctrl-names = "default", "sleep";
 };
+
+// devices on spi0
+
+// CS pins for devices on spi0
+&spi0 {
+    cs-gpios = <&pro_micro 4 GPIO_ACTIVE_HIGH>;
+};
+
+// Label spi0 as nice_view_spi,
+// The actual device node is defined in the `nice_view` shield.
+nice_view_spi: &spi0 { };

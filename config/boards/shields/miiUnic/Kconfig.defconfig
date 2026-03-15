@@ -14,4 +14,21 @@ if SHIELD_MIIUNIC_LEFT || SHIELD_MIIUNIC_RIGHT
 config ZMK_SPLIT
     default y
 
+config ZMK_POINTING
+    default y
+
+endif
+
+if SHIELD_MIIUNIC_LEFT
+
+config SPI
+    default y
+
+endif
+
+if SHIELD_MIIUNIC_RIGHT
+
+config I2C
+    default y
+
 endif

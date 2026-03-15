@@ -1,49 +1,81 @@
 #include "miiUnic.dtsi"
 
-&default_transform {
-    col-offset = <6>;
-};
-
-&five_column_transform {
-    col-offset = <6>;
+&matrix_transform0 {
+    col-offset = <7>;
 };
 
 &kscan0 {
     col-gpios
-        = <&pro_micro 14 GPIO_ACTIVE_HIGH>
-        , <&pro_micro 15 GPIO_ACTIVE_HIGH>
+        = <&pro_micro 15 GPIO_ACTIVE_HIGH>
         , <&pro_micro 18 GPIO_ACTIVE_HIGH>
         , <&pro_micro 19 GPIO_ACTIVE_HIGH>
         , <&pro_micro 20 GPIO_ACTIVE_HIGH>
         , <&pro_micro 21 GPIO_ACTIVE_HIGH>
+        , <&pro_micro 16 GPIO_ACTIVE_HIGH>
+        , <&pro_micro 14 GPIO_ACTIVE_HIGH>
         ;
 };
-&encoder_right {
+// == Input devices ==
+// Enabling input-split for its own input devices
+// Adding input devices and assigning them to input-split
+&input_split_right0 {
+    status = "okay";
+    device = <&input_device_right0>;
+};
+
+&encoder_right0 {
+    a-gpios = <&pro_micro 9 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+    b-gpios = <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
     status = "okay";
 };
 
+// Assigning dummy pins to other part's encoders
+// just to satisfy the devicetree requirements.
+// No code will be compiled for these disabled encoders.
+&encoder_left0 {
+    a-gpios = <&pro_micro 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+    b-gpios = <&pro_micro 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+};
+
 &pinctrl {
-    spi0_default: spi0_default {
+    /* configuration for i2c0 device, default state */
+    i2c0_default: i2c0_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 29)>,  // P16 (D3)  SCL
-                    <NRF_PSEL(SPIM_MOSI, 1, 31)>, // P17 (D2)  SDA
-                    <NRF_PSEL(SPIM_MISO, 0, 25)>;
+            bias-pull-up;
+            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 20)>;
         };
     };
-    spi0_sleep: spi0_sleep {
+    /* configuration for i2c0 device, sleep state */
+    i2c0_sleep: i2c0_sleep {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 29)>,
-                    <NRF_PSEL(SPIM_MOSI, 1, 31)>,
-                    <NRF_PSEL(SPIM_MISO, 0, 25)>;
+            bias-pull-up;
+            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 20)>;
             low-power-enable;
         };
     };
 };
+&i2c0 {
+  compatible = "nordic,nrf-twim";
+  status = "okay";
+  pinctrl-0 = <&i2c0_default>;
+  pinctrl-1 = <&i2c0_sleep>;
+  pinctrl-names = "default", "sleep";
+  clock-frequency = <I2C_BITRATE_FAST>;
+};
 
-nice_view_spi: &spi0 {
-    compatible = "nordic,nrf-spim";
-    pinctrl-0 = <&spi0_default>;
-    pinctrl-1 = <&spi0_sleep>;
-    pinctrl-names = "default", "sleep";
-    cs-gpios = <&pro_micro 19 GPIO_ACTIVE_HIGH>; // P19 (CS)
+// devices on i2c0
+
+&i2c0 {
+    input_device_right0: input_device_right0@2a {
+        status = "okay";
+        compatible = "cirque,pinnacle";
+        reg = <0x2a>;
+        dr-gpios = <&pro_micro 1 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        sleep;
+        no-secondary-tap;
+        no-taps;
+        sensitivity = "2x";
+    };
 };

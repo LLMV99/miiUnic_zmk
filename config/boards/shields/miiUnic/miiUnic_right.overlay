@@ -56,26 +56,27 @@
         };
     };
 };
-&i2c0 {
-  compatible = "nordic,nrf-twim";
-  status = "okay";
-  pinctrl-0 = <&i2c0_default>;
-  pinctrl-1 = <&i2c0_sleep>;
-  pinctrl-names = "default", "sleep";
-  clock-frequency = <I2C_BITRATE_FAST>;
-};
+&pro_micro_i2c {
+    status = "okay";
 
-// devices on i2c0
-
-&i2c0 {
-    input_device_right0: input_device_right0@2a {
-        status = "okay";
+    glidepoint_right: glidepoint@2a {
         compatible = "cirque,pinnacle";
         reg = <0x2a>;
-        dr-gpios = <&pro_micro 1 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        sleep;
-        no-secondary-tap;
-        no-taps;
+        status = "okay";
+        dr-gpios = <&pro_micro 1 (GPIO_ACTIVE_HIGH)>;
         sensitivity = "2x";
+        sleep;
+        //no-taps;
+        //y-invert;
+        x-invert;
     };
+};
+
+&glidepoint_listener {
+    status = "okay";
+    device = <&glidepoint_right>;
+};
+
+&glidepoint_split_listener {
+    status = "okay";
 };
